@@ -24,7 +24,7 @@ function doPost(e) {
 }
 
 function handleRegistration(data) {
-  var sheetName = "Data Pendaftar Event";
+  var sheetName = "Pendaftar Folago Academy";
   var files = DriveApp.getFilesByName(sheetName);
   var spreadsheet;
   var sheet;
@@ -40,7 +40,7 @@ function handleRegistration(data) {
     var headers = [
       "Kode Unik", 
       "Nama Lengkap", 
-      "Username Tiktok (bukan nama tiktok)", 
+      "QR Akun Tiktok", 
       "Link Username Tiktok", 
       "Followers", 
       "Pilih salah satu kategori di bawah ini yang paling sesuai dengan kategori konten kamu", 
@@ -80,7 +80,28 @@ function handleRegistration(data) {
     }
   }
   
-  var tickets = [];
+  // Fungsi untuk upload gambar base64 ke Google Drive
+  function uploadQRToDrive(base64Data, ticketId) {
+    if (!base64Data) return "-";
+    
+    var folderName = "QR_Akun_Tiktok_Folago";
+    var folderIter = DriveApp.getFoldersByName(folderName);
+    var folder;
+    if (folderIter.hasNext()) {
+      folder = folderIter.next();
+    } else {
+      folder = DriveApp.createFolder(folderName);
+      folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    }
+    
+    try {
+      var blob = Utilities.newBlob(Utilities.base64Decode(base64Data), 'image/png', ticketId + "_QR.png");
+      var file = folder.createFile(blob);
+      return file.getUrl();
+    } catch (e) {
+      return "Error uploading image";
+    }
+  }
   
   if (data.participants && Array.isArray(data.participants)) {
     for (var i = 0; i < data.participants.length; i++) {
@@ -88,10 +109,12 @@ function handleRegistration(data) {
       var randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
       var ticketId = "FA-WJ" + randomStr;
       
+      var qrUrl = uploadQRToDrive(p.tiktokQrImage, ticketId);
+      
       sheet.appendRow([
         ticketId,
         p.fullName,
-        p.tiktokUsername,
+        qrUrl,
         p.tiktokLink,
         p.followers,
         p.kategori,
@@ -114,10 +137,12 @@ function handleRegistration(data) {
     var randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
     var ticketId = "FA-WJ" + randomStr;
     
+    var qrUrl = uploadQRToDrive(data.tiktokQrImage, ticketId);
+    
     sheet.appendRow([
         ticketId,
         data.fullName,
-        data.tiktokUsername,
+        qrUrl,
         data.tiktokLink,
         data.followers,
         data.kategori,

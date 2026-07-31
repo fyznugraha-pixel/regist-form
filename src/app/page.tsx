@@ -19,9 +19,24 @@ export default function Home() {
     setStatus('idle');
 
     const formData = new FormData(e.currentTarget);
+    const fileInput = formData.get('tiktokQrImage') as File;
+    let base64Image = '';
+    
+    if (fileInput && fileInput.size > 0) {
+      base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(fileInput);
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // get only the base64 part
+        };
+        reader.onerror = error => reject(error);
+      });
+    }
+
     const participantsData = [{
       fullName: formData.get('fullName'),
-      tiktokUsername: formData.get('tiktokUsername'),
+      tiktokQrImage: base64Image,
       tiktokLink: formData.get('tiktokLink'),
       followers: formData.get('followers'),
       kategori: formData.get('kategori'),
@@ -193,6 +208,14 @@ export default function Home() {
                     key="form"
                     exit={{ opacity: 0, filter: "blur(10px)" }}
                   >
+                    <div className="mb-8">
+                      <img 
+                        src="/logo/tutorial-qr.png" 
+                        alt="Tutorial Cari Link Akun TikTok" 
+                        className="w-full rounded-2xl shadow-lg border border-slate-200 dark:border-white/10"
+                      />
+                    </div>
+                    
                     <h2 className="text-3xl sm:text-4xl font-heading font-bold mb-3 text-slate-900 dark:text-white">Amankan Kursimu</h2>
                     <p className="text-slate-500 dark:text-zinc-400 mb-8 text-base">Isi detail di bawah untuk mengonfirmasi kehadiran Anda.</p>
 
@@ -216,8 +239,8 @@ export default function Home() {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Username Tiktok (bukan nama tiktok) <span className="text-red-500">*</span></label>
-                            <input type="text" name="tiktokUsername" required className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50" placeholder="Contoh: @faizngraha" />
+                            <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Upload QR Akun Tiktok <span className="text-red-500">*</span></label>
+                            <input type="file" accept="image/*" name="tiktokQrImage" required className="w-full glass-input px-4 py-3 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
                           </div>
                           <div className="space-y-1.5">
                             <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Jumlah Followers <span className="text-red-500">*</span></label>
