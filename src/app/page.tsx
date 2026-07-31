@@ -18,39 +18,67 @@ export default function Home() {
     setIsSubmitting(true);
     setStatus('idle');
 
-    const formData = new FormData(e.currentTarget);
-    const fileInput = formData.get('tiktokQrImage') as File;
-    let base64Image = '';
-    
-    if (fileInput && fileInput.size > 0) {
-      base64Image = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(fileInput);
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]); // get only the base64 part
-        };
-        reader.onerror = error => reject(error);
-      });
-    }
-
-    const participantsData = [{
-      fullName: formData.get('fullName'),
-      tiktokQrImage: base64Image,
-      tiktokLink: formData.get('tiktokLink'),
-      followers: formData.get('followers'),
-      kategori: formData.get('kategori'),
-      isCommunity: formData.get('isCommunity'),
-      communityName: formData.get('communityName') || '-',
-      email: formData.get('email'),
-      whatsapp: formData.get('whatsapp'),
-    }];
-
-    const payload = {
-      participants: participantsData
-    };
-
     try {
+      const formData = new FormData(e.currentTarget);
+      const fileInput = formData.get('tiktokQrImage') as File;
+      let base64Image = '';
+      
+      if (fileInput && fileInput.size > 0) {
+        base64Image = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(fileInput);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 800;
+              const MAX_HEIGHT = 800;
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx?.drawImage(img, 0, 0, width, height);
+              
+              // Compress to JPEG with 0.7 quality to keep payload small
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+              resolve(dataUrl.split(',')[1]);
+            };
+            img.onerror = error => reject(error);
+          };
+          reader.onerror = error => reject(error);
+        });
+      }
+
+      const participantsData = [{
+        fullName: formData.get('fullName'),
+        tiktokQrImage: base64Image,
+        tiktokLink: formData.get('tiktokLink'),
+        followers: formData.get('followers'),
+        kategori: formData.get('kategori'),
+        isCommunity: formData.get('isCommunity'),
+        communityName: formData.get('communityName') || '-',
+        email: formData.get('email'),
+        whatsapp: formData.get('whatsapp'),
+      }];
+
+      const payload = {
+        participants: participantsData
+      };
+
       // Ganti URL ini dengan URL Web App Anda
       const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZ9Ok4VZvBjKGooJcIsYcnFFU8E22L40jcbkWsSeciQ2xcw6w4VCYpzZFn0XpqI5g/exec";
       
@@ -79,7 +107,6 @@ export default function Home() {
             });
           } catch (emailError) {
             console.error('Failed to send email:', emailError);
-            // We don't block the UI success if email fails, as data is saved.
           }
         }
         
@@ -119,16 +146,19 @@ export default function Home() {
                   transition={{ ease: "linear", duration: 15, repeat: Infinity }}
                 >
                   {[
+                    { src: '/logo/unama.jpg', alt: 'UNAMA' },
                     { src: '/logo/tactlink.png', alt: 'Tactlink' },
                     { src: '/logo/iwapi.png', alt: 'IWAPI' },
-                    { src: '/logo/folago.jpeg', alt: 'Folago' },
+                    { src: '/logo/folago.png', alt: 'Folago' },
                     // Duplicate for seamless infinite scrolling
+                    { src: '/logo/unama.jpg', alt: 'UNAMA' },
                     { src: '/logo/tactlink.png', alt: 'Tactlink' },
                     { src: '/logo/iwapi.png', alt: 'IWAPI' },
-                    { src: '/logo/folago.jpeg', alt: 'Folago' },
+                    { src: '/logo/folago.png', alt: 'Folago' },
+                    { src: '/logo/unama.jpg', alt: 'UNAMA' },
                     { src: '/logo/tactlink.png', alt: 'Tactlink' },
                     { src: '/logo/iwapi.png', alt: 'IWAPI' },
-                    { src: '/logo/folago.jpeg', alt: 'Folago' }
+                    { src: '/logo/folago.png', alt: 'Folago' }
                   ].map((logo, idx) => (
                     <div key={`r1-${idx}`} className="bg-white/90 dark:bg-white/10 backdrop-blur-sm rounded-2xl p-3 sm:p-4 shrink-0 flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-[1.15] hover:z-10 hover:shadow-[0_0_25px_rgba(255,255,255,0.5)] cursor-pointer h-16 w-28 sm:h-20 sm:w-36 border border-slate-200/50 dark:border-white/20">
                       <img src={logo.src} alt={logo.alt} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal dark:brightness-[100] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />

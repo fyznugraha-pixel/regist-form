@@ -5,13 +5,13 @@ export const metadata: Metadata = {
   title: 'Registrasi - Dari Konten Jadi Cuan Bersama Folago Academy',
   description: 'Form pendaftaran eksklusif acara Dari Konten Jadi Cuan bersama Folago Academy',
   icons: {
-    icon: '/logo/folago.jpeg',
-    apple: '/logo/folago.jpeg',
+    icon: '/logo/folago.png',
+    apple: '/logo/folago.png',
   },
   openGraph: {
     title: 'Registrasi - Dari Konten Jadi Cuan',
     description: 'Form pendaftaran eksklusif acara Dari Konten Jadi Cuan bersama Folago Academy',
-    images: ['/logo/folago.jpeg'],
+    images: ['/logo/folago.png'],
   }
 }
 

@@ -35,10 +35,11 @@ export async function POST(request: Request) {
           <tr>
             <td align="center" style="background-color: #ffffff; padding: 30px 20px; border-bottom: 4px solid #22c55e;">
               <p style="margin: 0 0 10px 0; font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase;">Organized by</p>
-              <img src="https://raw.githubusercontent.com/fyznugraha-pixel/iwapi/main/public/logo/folago.jpeg" alt="Folago Academy" style="height: 50px; margin-bottom: 20px;" />
+              <img src="https://raw.githubusercontent.com/fyznugraha-pixel/iwapi/main/public/logo/folago.png" alt="Folago Academy" style="height: 50px; margin-bottom: 20px;" />
               
               <p style="margin: 0 0 10px 0; font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase;">In Collaboration With</p>
               <div style="text-align: center;">
+                <img src="https://raw.githubusercontent.com/fyznugraha-pixel/iwapi/main/public/logo/unama.jpg" alt="UNAMA" style="height: 35px; margin: 0 10px; vertical-align: middle;" />
                 <img src="https://raw.githubusercontent.com/fyznugraha-pixel/iwapi/main/public/logo/iwapi.png" alt="IWAPI" style="height: 35px; margin: 0 10px; vertical-align: middle;" />
                 <img src="https://raw.githubusercontent.com/fyznugraha-pixel/iwapi/main/public/logo/tactlink.png" alt="Tactlink" style="height: 35px; margin: 0 10px; vertical-align: middle;" />
               </div>
