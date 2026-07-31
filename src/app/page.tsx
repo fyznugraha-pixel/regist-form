@@ -160,8 +160,15 @@ export default function Home() {
                     { src: '/logo/iwapi.png', alt: 'IWAPI' },
                     { src: '/logo/folago.png', alt: 'Folago' }
                   ].map((logo, idx) => (
-                    <div key={`r1-${idx}`} className="bg-white/90 dark:bg-white/10 backdrop-blur-sm rounded-2xl p-3 sm:p-4 shrink-0 flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-[1.15] hover:z-10 hover:shadow-[0_0_25px_rgba(255,255,255,0.5)] cursor-pointer h-16 w-28 sm:h-20 sm:w-36 border border-slate-200/50 dark:border-white/20">
-                      <img src={logo.src} alt={logo.alt} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal dark:brightness-[100] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                    <div 
+                      key={`r1-${idx}`} 
+                      className={`backdrop-blur-sm rounded-2xl p-3 sm:p-4 shrink-0 flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-[1.15] hover:z-10 hover:shadow-[0_0_25px_rgba(255,255,255,0.5)] cursor-pointer h-16 w-28 sm:h-20 sm:w-36 border border-slate-200/50 dark:border-white/20 ${logo.alt === 'Folago' ? 'bg-slate-900 dark:bg-slate-900' : 'bg-white/90 dark:bg-white/10'}`}
+                    >
+                      <img 
+                        src={logo.src} 
+                        alt={logo.alt} 
+                        className={`h-full w-full object-contain ${logo.alt === 'Folago' ? '' : 'mix-blend-multiply dark:mix-blend-normal dark:brightness-[100] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'}`} 
+                      />
                     </div>
                   ))}
                 </motion.div>
