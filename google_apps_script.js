@@ -103,6 +103,8 @@ function handleRegistration(data) {
     }
   }
   
+  var tickets = [];
+  
   if (data.participants && Array.isArray(data.participants)) {
     for (var i = 0; i < data.participants.length; i++) {
       var p = data.participants[i];
