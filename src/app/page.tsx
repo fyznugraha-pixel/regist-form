@@ -281,7 +281,6 @@ export default function Home() {
                         <div className="space-y-1.5">
                           <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Link Username Tiktok <span className="text-red-500">*</span></label>
                           <input type="url" name="tiktokLink" required className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50" placeholder="https://tiktok.com/@faizngraha" />
-                          <p className="text-xs text-slate-500 ml-1 mt-1">Cuma bisa isi link ya mas</p>
                         </div>
                         
                         <div className="space-y-1.5">
