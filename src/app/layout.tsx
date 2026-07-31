@@ -2,12 +2,17 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Registrasi - Bongkar Rahasia Cuan Lewat TikTok Social Commerce',
-  description: 'Form pendaftaran acara Bongkar Rahasia Cuan Lewat TikTok Social Commerce bersama Tim TikTok Official Indonesia',
+  title: 'Registrasi - Dari Konten Jadi Cuan Bersama Folago Academy',
+  description: 'Form pendaftaran eksklusif acara Dari Konten Jadi Cuan bersama Folago Academy',
   icons: {
-    icon: '/logo/iwapi.png',
-    apple: '/logo/iwapi.png',
+    icon: '/logo/folago.jpeg',
+    apple: '/logo/folago.jpeg',
   },
+  openGraph: {
+    title: 'Registrasi - Dari Konten Jadi Cuan',
+    description: 'Form pendaftaran eksklusif acara Dari Konten Jadi Cuan bersama Folago Academy',
+    images: ['/logo/folago.jpeg'],
+  }
 }
 
 import { ThemeProvider } from '@/components/ThemeProvider'
