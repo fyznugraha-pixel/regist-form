@@ -13,24 +13,9 @@
 
 function doPost(e) {
   try {
-    // Parsing data JSON yang dikirim dari form HTML/Next.js
     var data = JSON.parse(e.postData.contents);
-    
-    // Cek action: jika "validate" jalankan validasi tiket, jika "getParticipants" ambil data, jika tidak maka registrasi
-    if (data.action === "validate") {
-      return handleValidation(data);
-    } else if (data.action === "getParticipants") {
-      return handleGetParticipants();
-    } else if (data.action === "getAdminData") {
-      return handleGetAdminData();
-    } else if (data.action === "updatePaymentStatus") {
-      return handleUpdatePaymentStatus(data);
-    }
-    
     return handleRegistration(data);
-    
   } catch (error) {
-    // Tangani error global
     return ContentService.createTextOutput(JSON.stringify({
       "status": "error",
       "message": error.toString()
@@ -38,93 +23,7 @@ function doPost(e) {
   }
 }
 
-function handleValidation(data) {
-  var sheetName = "Data Pendaftar Event";
-  var files = DriveApp.getFilesByName(sheetName);
-  
-  if (!files.hasNext()) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "error",
-      "message": "Database Spreadsheet belum dibuat"
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var spreadsheet = SpreadsheetApp.open(files.next());
-  var sheet = spreadsheet.getActiveSheet();
-  var dataRange = sheet.getDataRange();
-  var values = dataRange.getValues();
-  
-  if (values.length <= 1) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "invalid",
-      "message": "Belum ada data pendaftar"
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var headers = values[0];
-  var statusColIdx = headers.indexOf("Status Kehadiran");
-  var timeColIdx = headers.indexOf("Waktu Check-in");
-  
-  // Jika kolom absensi belum ada, buat di ujung kanan
-  if (statusColIdx === -1) {
-    statusColIdx = headers.length;
-    timeColIdx = headers.length + 1;
-    sheet.getRange(1, statusColIdx + 1).setValue("Status Kehadiran").setBackground("#10b981").setFontColor("white").setFontWeight("bold");
-    sheet.getRange(1, timeColIdx + 1).setValue("Waktu Check-in").setBackground("#10b981").setFontColor("white").setFontWeight("bold");
-  }
-  
-  var ticketId = data.ticketId;
-  
-  // Cari baris yang memiliki Ticket ID yang sama
-  for (var i = 1; i < values.length; i++) {
-    if (values[i][0] === ticketId) { // Ticket ID diasumsikan ada di Kolom A (index 0)
-      var nama = values[i][2]; // Nama Lengkap di Kolom C (index 2)
-      var currentStatus = values[i][statusColIdx];
-      
-      if (currentStatus === "Hadir") {
-        return ContentService.createTextOutput(JSON.stringify({
-          "status": "already_scanned",
-          "message": "Tiket sudah digunakan sebelumnya",
-          "nama": nama
-        })).setMimeType(ContentService.MimeType.JSON);
-      } else {
-        // Tandai sebagai Hadir
-        sheet.getRange(i + 1, statusColIdx + 1).setValue("Hadir");
-        sheet.getRange(i + 1, timeColIdx + 1).setValue(new Date());
-        
-        return ContentService.createTextOutput(JSON.stringify({
-          "status": "success",
-          "message": "Validasi Berhasil",
-          "nama": nama
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-    }
-  }
-  
-  // Jika loop selesai tapi tiket tidak ditemukan
-  return ContentService.createTextOutput(JSON.stringify({
-    "status": "invalid",
-    "message": "Tiket tidak terdaftar dalam sistem (Palsu)"
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
 function handleRegistration(data) {
-  // 1. Simpan Gambar ke Google Drive
-  var folderName = "Bukti Transfer Event";
-  var folders = DriveApp.getFoldersByName(folderName);
-  var folder;
-  
-  if (folders.hasNext()) {
-    folder = folders.next();
-  } else {
-    folder = DriveApp.createFolder(folderName);
-  }
-  
-  var imageBlob = Utilities.newBlob(Utilities.base64Decode(data.fileContent), data.mimeType, data.fileName);
-  var file = folder.createFile(imageBlob);
-  var fileUrl = file.getUrl();
-  
-  // 2. Simpan Data ke Spreadsheet
   var sheetName = "Data Pendaftar Event";
   var files = DriveApp.getFilesByName(sheetName);
   var spreadsheet;
@@ -138,14 +37,47 @@ function handleRegistration(data) {
     sheet = spreadsheet.getActiveSheet();
     
     // Buat Header Row
-    var headers = ["Ticket ID", "Timestamp", "Nama Lengkap", "Email", "No Whatsapp", "Username TikTok", "Link TikTok", "Jumlah Followers", "URL Bukti Pembayaran", "Status Kehadiran", "Waktu Check-in", "Status Pembayaran"];
+    var headers = [
+      "Kode Unik", 
+      "Nama Lengkap", 
+      "Username Tiktok (bukan nama tiktok)", 
+      "Link Username Tiktok", 
+      "Followers", 
+      "Pilih salah satu kategori di bawah ini yang paling sesuai dengan kategori konten kamu", 
+      "Apakah Kamu Datang dari Anggota Komunitas/Mahasiswa/Institusi/Organisasi?",
+      "Kalau iya, sebutkan",
+      "Email",
+      "No Whatsapp",
+      "Timestamp"
+    ];
     sheet.appendRow(headers);
     
+    // Styling Header
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setFontWeight("bold");
-    headerRange.setBackground("#0ea5e9"); // Warna biru tema web
+    headerRange.setBackground("#0056b3"); // Biru tua agar terlihat profesional
     headerRange.setFontColor("white");
+    headerRange.setHorizontalAlignment("center");
+    headerRange.setVerticalAlignment("middle");
+    headerRange.setWrap(true);
+    
+    // Set tinggi baris header sedikit lebih besar
+    sheet.setRowHeight(1, 40);
+    
+    // Freeze header
     sheet.setFrozenRows(1);
+    
+    // Terapkan Alternating Colors (Banding) untuk kemudahan membaca
+    // Kita terapkan ke range yang cukup besar (misal 1000 baris) agar otomatis rapi
+    var fullRange = sheet.getRange(1, 1, 1000, headers.length);
+    fullRange.setVerticalAlignment("middle");
+    fullRange.setWrap(true); // Teks panjang tidak akan tembus ke kolom sebelah
+    
+    try {
+      fullRange.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+    } catch (e) {
+      // Abaikan jika banding sudah ada
+    }
   }
   
   var tickets = [];
@@ -153,24 +85,21 @@ function handleRegistration(data) {
   if (data.participants && Array.isArray(data.participants)) {
     for (var i = 0; i < data.participants.length; i++) {
       var p = data.participants[i];
-      // Generate Ticket ID Unik
-      var timestamp = Math.floor(Date.now() / 1000);
       var randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-      var ticketId = "TK-" + timestamp + "-" + randomStr;
+      var ticketId = "FA-WJ" + randomStr;
       
       sheet.appendRow([
         ticketId,
-        new Date(),
         p.fullName,
-        p.email,
-        p.whatsapp,
         p.tiktokUsername,
         p.tiktokLink,
         p.followers,
-        fileUrl,
-        "", // Status Kehadiran awal kosong
-        "", // Waktu check-in awal kosong
-        "Pending" // Status Pembayaran awal
+        p.kategori,
+        p.isCommunity,
+        p.communityName,
+        p.email,
+        p.whatsapp,
+        new Date()
       ]);
       
       tickets.push({
@@ -179,28 +108,24 @@ function handleRegistration(data) {
         fullName: p.fullName
       });
       
-      // Kasih delay kecil agar timestamp dan random string lebih terjamin beda
       Utilities.sleep(50);
     }
   } else {
-    // Fallback kalau format lama
-    var timestamp = Math.floor(Date.now() / 1000);
     var randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-    var ticketId = "TK-" + timestamp + "-" + randomStr;
+    var ticketId = "FA-WJ" + randomStr;
     
     sheet.appendRow([
-      ticketId,
-      new Date(),
-      data.fullName,
-      data.email,
-      data.whatsapp,
-      data.tiktokUsername,
-      data.tiktokLink,
-      data.followers,
-      fileUrl,
-      "", 
-      "",
-      "Pending"
+        ticketId,
+        data.fullName,
+        data.tiktokUsername,
+        data.tiktokLink,
+        data.followers,
+        data.kategori,
+        data.isCommunity,
+        data.communityName,
+        data.email,
+        data.whatsapp,
+        new Date()
     ]);
     
     tickets.push({
@@ -210,166 +135,29 @@ function handleRegistration(data) {
     });
   }
   
-  sheet.autoResizeColumns(1, 11);
+  // Format Border untuk data terbaru yang masuk
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var dataRange = sheet.getRange(2, 1, lastRow - 1, 11);
+    dataRange.setBorder(true, true, true, true, true, true, "#cccccc", SpreadsheetApp.BorderStyle.SOLID);
+  }
   
-  // Kembalikan response JSON sukses
+  // Menyesuaikan ukuran kolom agar lebih proporsional
+  sheet.setColumnWidth(1, 120); // Kode Unik
+  sheet.setColumnWidth(2, 200); // Nama Lengkap
+  sheet.setColumnWidth(3, 150); // Username Tiktok
+  sheet.setColumnWidth(4, 250); // Link Tiktok
+  sheet.setColumnWidth(5, 100); // Followers
+  sheet.setColumnWidth(6, 180); // Kategori
+  sheet.setColumnWidth(7, 150); // Anggota Komunitas
+  sheet.setColumnWidth(8, 200); // Nama Komunitas
+  sheet.setColumnWidth(9, 200); // Email
+  sheet.setColumnWidth(10, 150); // WA
+  sheet.setColumnWidth(11, 160); // Timestamp
+  
   return ContentService.createTextOutput(JSON.stringify({
     "status": "success",
-    "message": "Data dan file berhasil disimpan",
-    "fileUrl": fileUrl,
+    "message": "Data berhasil disimpan",
     "tickets": tickets
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
-function handleGetParticipants() {
-  var sheetName = "Data Pendaftar Event";
-  var files = DriveApp.getFilesByName(sheetName);
-  
-  if (!files.hasNext()) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "error",
-      "message": "Database Spreadsheet belum dibuat"
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var spreadsheet = SpreadsheetApp.open(files.next());
-  var sheet = spreadsheet.getActiveSheet();
-  var dataRange = sheet.getDataRange();
-  var values = dataRange.getValues();
-  
-  if (values.length <= 1) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "success",
-      "participants": []
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var headers = values[0];
-  var statusColIdx = headers.indexOf("Status Kehadiran");
-  
-  var participants = [];
-  for (var i = 1; i < values.length; i++) {
-    var row = values[i];
-    participants.push({
-      id: row[0] || "",
-      nama: row[2] || "",
-      email: row[3] || "",
-      status: statusColIdx !== -1 ? (row[statusColIdx] || "") : ""
-    });
-  }
-  
-  // Balik urutan agar pendaftar terbaru berada di atas
-  participants.reverse();
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    "status": "success",
-    "participants": participants
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
-function handleGetAdminData() {
-  var sheetName = "Data Pendaftar Event";
-  var files = DriveApp.getFilesByName(sheetName);
-  
-  if (!files.hasNext()) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "error",
-      "message": "Database Spreadsheet belum dibuat"
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var spreadsheet = SpreadsheetApp.open(files.next());
-  var sheet = spreadsheet.getActiveSheet();
-  var dataRange = sheet.getDataRange();
-  var values = dataRange.getValues();
-  
-  if (values.length <= 1) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "success",
-      "participants": []
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var headers = values[0];
-  var paymentStatusColIdx = headers.indexOf("Status Pembayaran");
-  var buktiUrlColIdx = headers.indexOf("URL Bukti Pembayaran");
-  var attendanceColIdx = headers.indexOf("Status Kehadiran");
-  
-  // Jika kolom Status Pembayaran belum ada, buat
-  if (paymentStatusColIdx === -1) {
-    paymentStatusColIdx = headers.length;
-    sheet.getRange(1, paymentStatusColIdx + 1).setValue("Status Pembayaran").setBackground("#f59e0b").setFontColor("white").setFontWeight("bold");
-  }
-  
-  var participants = [];
-  for (var i = 1; i < values.length; i++) {
-    var row = values[i];
-    participants.push({
-      ticketId: row[0] || "",
-      timestamp: row[1] ? new Date(row[1]).toISOString() : "",
-      fullName: row[2] || "",
-      email: row[3] || "",
-      whatsapp: row[4] || "",
-      buktiUrl: buktiUrlColIdx !== -1 ? (row[buktiUrlColIdx] || "") : "",
-      statusPembayaran: paymentStatusColIdx !== -1 ? (row[paymentStatusColIdx] || "Pending") : "Pending",
-      statusKehadiran: attendanceColIdx !== -1 ? (row[attendanceColIdx] || "") : ""
-    });
-  }
-  
-  participants.reverse();
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    "status": "success",
-    "participants": participants
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
-function handleUpdatePaymentStatus(data) {
-  var sheetName = "Data Pendaftar Event";
-  var files = DriveApp.getFilesByName(sheetName);
-  
-  if (!files.hasNext()) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "error",
-      "message": "Database Spreadsheet belum dibuat"
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var spreadsheet = SpreadsheetApp.open(files.next());
-  var sheet = spreadsheet.getActiveSheet();
-  var dataRange = sheet.getDataRange();
-  var values = dataRange.getValues();
-  
-  if (values.length <= 1) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "error",
-      "message": "Belum ada data"
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  var headers = values[0];
-  var paymentStatusColIdx = headers.indexOf("Status Pembayaran");
-  
-  if (paymentStatusColIdx === -1) {
-    paymentStatusColIdx = headers.length;
-    sheet.getRange(1, paymentStatusColIdx + 1).setValue("Status Pembayaran").setBackground("#f59e0b").setFontColor("white").setFontWeight("bold");
-  }
-  
-  var ticketId = data.ticketId;
-  
-  for (var i = 1; i < values.length; i++) {
-    if (values[i][0] === ticketId) {
-      sheet.getRange(i + 1, paymentStatusColIdx + 1).setValue("Lunas");
-      
-      return ContentService.createTextOutput(JSON.stringify({
-        "status": "success",
-        "message": "Status pembayaran berhasil diupdate"
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    "status": "error",
-    "message": "Ticket ID tidak ditemukan"
   })).setMimeType(ContentService.MimeType.JSON);
 }

@@ -3,13 +3,34 @@ const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
 
+function generateHtmlQrCode(data) {
+  const qr = QRCode.create(data, { errorCorrectionLevel: 'M' });
+  const size = qr.modules.size;
+  const modules = qr.modules.data;
+  
+  let html = '<table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; margin: 0 auto; line-height: 0;">\n';
+  
+  for (let row = 0; row < size; row++) {
+    html += '  <tr style="line-height: 0; font-size: 0;">\n';
+    for (let col = 0; col < size; col++) {
+      const isDark = modules[row * size + col];
+      const color = isDark ? '#000000' : '#ffffff';
+      html += `    <td style="width: 8px; height: 8px; background-color: ${color}; padding: 0; margin: 0; font-size: 0; line-height: 0; border: none;"></td>\n`;
+    }
+    html += '  </tr>\n';
+  }
+  
+  html += '</table>';
+  return html;
+}
+
 const smtpConfig = {
-  host: 'mail.tactlink.com',
-  port: 587, // Menggunakan port 587
-  secure: false, // port 587 wajib secure: false
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
-    user: 'fayiz.nugraha@tactlink.com',
-    pass: 'fayiz.nugraha123',
+    user: 'fyznugraha@gmail.com',
+    pass: 'mnacxhiujefckyqu',
   },
 };
 
@@ -71,36 +92,23 @@ async function sendBlastEmails() {
         await new Promise(resolve => setTimeout(resolve, 13000));
       }
 
-      // Generate QR Code menjadi buffer gambar (tanpa internet)
-      const qrBuffer = await QRCode.toBuffer(participant.ticketId, {
-        width: 300,
-        margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        }
-      });
+      // Generate QR Code menjadi HTML Table murni (Anti-blokir Outlook/Gmail)
+      const qrHtml = generateHtmlQrCode(participant.ticketId);
       
       const htmlFilePath = path.join(__dirname, 'tactlink-reminder.html');
       const baseHtml = fs.readFileSync(htmlFilePath, 'utf-8');
 
       const personalizedHtml = baseHtml
         .replace(/{{FULL_NAME}}/g, participant.fullName)
-        .replace(/{{TICKET_ID}}/g, participant.ticketId);
+        .replace(/{{TICKET_ID}}/g, participant.ticketId)
+        .replace(/{{QR_CODE_HTML}}/g, qrHtml);
 
       const info = await transporter.sendMail({
-        from: '"Event Tiktok Social Commerce" <fayiz.nugraha@tactlink.com>',
-        replyTo: 'fayiz.nugraha@tactlink.com',
+        from: '"Event Tiktok Social Commerce" <fyznugraha@gmail.com>',
+        replyTo: 'fyznugraha@gmail.com',
         to: email,
-        subject: `E-Ticket Registrasi: ${participant.ticketId} - TikTok Social Commerce`,
-        html: personalizedHtml,
-        attachments: [
-          {
-            filename: 'qrcode.png',
-            content: qrBuffer,
-            cid: 'qrcode_ticket' 
-          }
-        ]
+        subject: `E-Ticket Registrasi: ${participant.ticketId} - TikTok Social Commerce (QR Backup)`,
+        html: personalizedHtml
       });
 
       console.log(`[${i + 1}/${recipients.length}] ✅ Terkirim ke: ${email} (Tiket: ${participant.ticketId})`);
