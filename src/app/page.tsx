@@ -238,14 +238,6 @@ export default function Home() {
                     key="form"
                     exit={{ opacity: 0, filter: "blur(10px)" }}
                   >
-                    <div className="mb-8">
-                      <img 
-                        src="/logo/tutorial-qr.png" 
-                        alt="Tutorial Cari Link Akun TikTok" 
-                        className="w-full rounded-2xl shadow-lg border border-slate-200 dark:border-white/10"
-                      />
-                    </div>
-                    
                     <h2 className="text-3xl sm:text-4xl font-heading font-bold mb-3 text-slate-900 dark:text-white">Amankan Kursimu</h2>
                     <p className="text-slate-500 dark:text-zinc-400 mb-8 text-base">Isi detail di bawah untuk mengonfirmasi kehadiran Anda.</p>
 
@@ -267,6 +259,15 @@ export default function Home() {
                           <input type="text" name="fullName" required className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50" placeholder="Masukkan nama lengkap Anda" />
                         </div>
                         
+                        <div className="mb-2 mt-4">
+                          <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 mb-2 block">Panduan Mendapatkan QR & Link Akun TikTok:</label>
+                          <img 
+                            src="/logo/tutorial-qr.png" 
+                            alt="Tutorial Cari Link Akun TikTok" 
+                            className="w-full rounded-2xl shadow-sm border border-slate-200 dark:border-white/10"
+                          />
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="space-y-1.5">
                             <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Upload QR Akun Tiktok <span className="text-red-500">*</span></label>
