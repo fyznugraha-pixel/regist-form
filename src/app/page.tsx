@@ -20,52 +20,10 @@ export default function Home() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const fileInput = formData.get('tiktokQrImage') as File;
-      let base64Image = '';
-      
-      if (fileInput && fileInput.size > 0) {
-        base64Image = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(fileInput);
-          reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target?.result as string;
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const MAX_WIDTH = 800;
-              const MAX_HEIGHT = 800;
-              let width = img.width;
-              let height = img.height;
-
-              if (width > height) {
-                if (width > MAX_WIDTH) {
-                  height *= MAX_WIDTH / width;
-                  width = MAX_WIDTH;
-                }
-              } else {
-                if (height > MAX_HEIGHT) {
-                  width *= MAX_HEIGHT / height;
-                  height = MAX_HEIGHT;
-                }
-              }
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              ctx?.drawImage(img, 0, 0, width, height);
-              
-              // Compress to JPEG with 0.7 quality to keep payload small
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-              resolve(dataUrl.split(',')[1]);
-            };
-            img.onerror = error => reject(error);
-          };
-          reader.onerror = error => reject(error);
-        });
-      }
 
       const participantsData = [{
         fullName: formData.get('fullName'),
-        tiktokQrImage: base64Image,
+        tiktokUsername: formData.get('tiktokUsername'),
         tiktokLink: formData.get('tiktokLink'),
         followers: formData.get('followers'),
         kategori: formData.get('kategori'),
@@ -265,20 +223,10 @@ export default function Home() {
                           <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Nama Lengkap <span className="text-red-500">*</span></label>
                           <input type="text" name="fullName" required className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50" placeholder="Masukkan nama lengkap Anda" />
                         </div>
-                        
-                        <div className="mb-2 mt-4">
-                          <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 mb-2 block">Panduan Mendapatkan QR & Link Akun TikTok:</label>
-                          <img 
-                            src="/logo/tutorial-qr.png" 
-                            alt="Tutorial Cari Link Akun TikTok" 
-                            className="w-full rounded-2xl shadow-sm border border-slate-200 dark:border-white/10"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
                           <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Upload QR Akun Tiktok <span className="text-red-500">*</span></label>
-                            <input type="file" accept="image/*" name="tiktokQrImage" required className="w-full glass-input px-4 py-3 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
+                            <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Username Tiktok <span className="text-red-500">*</span></label>
+                            <input type="text" name="tiktokUsername" required className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50" placeholder="@username" />
                           </div>
                           <div className="space-y-1.5">
                             <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1">Jumlah Followers <span className="text-red-500">*</span></label>
