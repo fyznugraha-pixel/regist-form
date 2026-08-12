@@ -177,7 +177,7 @@ export default function Home() {
       };
 
       const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbzZ9Ok4VZvBjKGooJcIsYcnFFU8E22L40jcbkWsSeciQ2xcw6w4VCYpzZFn0XpqI5g/exec";
+        "https://script.google.com/macros/s/AKfycbxhlhs2GY6D2ciDtVWxKhqJ8WpjJ-e1qPS1ddBaHS6HhvNIRrm2Cibq5rFY65A_FeUQUA/exec";
 
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
