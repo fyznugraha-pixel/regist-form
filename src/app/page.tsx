@@ -840,7 +840,7 @@ export default function Home() {
                               name="email"
                               required
                               className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50"
-                              placeholder="Untuk pengiriman tiket"
+                              placeholder="example@gmail.com"
                             />
 
                           </div>
