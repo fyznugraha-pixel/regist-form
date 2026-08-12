@@ -1,16 +1,3 @@
-/**
- * INSTRUKSI DEPLOYMENT (PENTING):
- * 1. Buka https://script.google.com/
- * 2. Buka project script yang sudah Anda buat sebelumnya.
- * 3. Hapus kode lama, lalu paste/tempel semua kode baru di bawah ini.
- * 4. Klik Save (icon disket).
- * 5. Klik "Deploy" > "Manage deployments".
- * 6. Klik icon pensil (Edit) di deployment Anda.
- * 7. Pada tulisan "Version", ubah dari "1" ke "New version".
- * 8. Klik "Deploy" lagi.
- * 9. Selesai!
- */
-
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
