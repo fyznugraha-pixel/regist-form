@@ -1060,133 +1060,125 @@ export default function Home() {
                           </label>
 
 
-                          {!paymentProofPreview ? (
+                          <div className="relative">
 
-                            /* BELUM UPLOAD */
-                            <label
-                              htmlFor="paymentProof"
-                              className="relative flex flex-col items-center justify-center w-full min-h-[170px] border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:border-green-400 dark:hover:border-green-500/50 transition-all"
-                            >
+                            {!paymentProofPreview ? (
 
-                              <div className="flex flex-col items-center justify-center px-5 py-8 text-center">
-
-                                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-3">
-
-                                  <Upload className="w-6 h-6 text-green-600 dark:text-green-400" />
-
-                                </div>
-
-                                <p className="text-sm font-semibold text-slate-700 dark:text-zinc-200">
-
-                                  Klik untuk upload bukti pembayaran
-
-                                </p>
-
-                                <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">
-
-                                  JPG atau PNG, maksimal 5 MB
-
-                                </p>
-
-                              </div>
-
-
-                              <input
-                                id="paymentProof"
-                                type="file"
-                                name="paymentProof"
-                                required
-                                accept="image/jpeg,image/png"
-                                onChange={handlePaymentProofChange}
-                                className="hidden"
-                              />
-
-                            </label>
-
-                          ) : (
-
-                            /* SUDAH UPLOAD */
-                            <div className="relative rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3">
-
-
-                              {/* DELETE BUTTON */}
-                              <button
-                                type="button"
-                                onClick={handleRemovePaymentProof}
-                                className="absolute top-5 right-5 z-30 w-9 h-9 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-all hover:scale-105"
-                                aria-label="Hapus bukti pembayaran"
-                                title="Hapus foto"
-                              >
-
-                                <X className="w-5 h-5" />
-
-                              </button>
-
-
-
-                              {/* CLICK PREVIEW TO REPLACE */}
+                              /* BELUM UPLOAD */
                               <label
                                 htmlFor="paymentProof"
-                                className="block cursor-pointer group"
+                                className="relative flex flex-col items-center justify-center w-full min-h-[170px] border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:border-green-400 dark:hover:border-green-500/50 transition-all"
                               >
 
-                                <div className="relative overflow-hidden rounded-xl bg-slate-100 dark:bg-black/30 min-h-[200px] flex items-center justify-center">
+                                <div className="flex flex-col items-center justify-center px-5 py-8 text-center">
 
-                                  <img
-                                    src={paymentProofPreview}
-                                    alt="Preview Bukti Pembayaran"
-                                    className="w-full max-h-[450px] object-contain"
-                                  />
+                                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-3">
 
-
-                                  {/* HOVER OVERLAY */}
-                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-all flex items-center justify-center">
-
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg">
-
-                                      <RefreshCw className="w-4 h-4" />
-
-                                      Ganti Foto
-
-                                    </div>
+                                    <Upload className="w-6 h-6 text-green-600 dark:text-green-400" />
 
                                   </div>
+
+                                  <p className="text-sm font-semibold text-slate-700 dark:text-zinc-200">
+
+                                    Klik untuk upload bukti pembayaran
+
+                                  </p>
+
+                                  <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">
+
+                                    JPG atau PNG, maksimal 5 MB
+
+                                  </p>
 
                                 </div>
 
                               </label>
 
+                            ) : (
+
+                              /* SUDAH UPLOAD */
+                              <div className="relative rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3">
 
 
-                              {/* FILE INFO */}
-                              <div className="flex items-center gap-2 mt-3 px-1">
+                                {/* DELETE BUTTON */}
+                                <button
+                                  type="button"
+                                  onClick={handleRemovePaymentProof}
+                                  className="absolute top-5 right-5 z-30 w-9 h-9 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-all hover:scale-105"
+                                  aria-label="Hapus bukti pembayaran"
+                                  title="Hapus foto"
+                                >
 
-                                <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                                  <X className="w-5 h-5" />
 
-                                <p className="text-sm text-slate-600 dark:text-zinc-300 truncate">
+                                </button>
 
-                                  {paymentProofName}
 
-                                </p>
+
+                                {/* CLICK PREVIEW TO REPLACE */}
+                                <label
+                                  htmlFor="paymentProof"
+                                  className="block cursor-pointer group"
+                                >
+
+                                  <div className="relative overflow-hidden rounded-xl bg-slate-100 dark:bg-black/30 min-h-[200px] flex items-center justify-center">
+
+                                    <img
+                                      src={paymentProofPreview}
+                                      alt="Preview Bukti Pembayaran"
+                                      className="w-full max-h-[450px] object-contain"
+                                    />
+
+
+                                    {/* HOVER OVERLAY */}
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-all flex items-center justify-center">
+
+                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg">
+
+                                        <RefreshCw className="w-4 h-4" />
+
+                                        Ganti Foto
+
+                                      </div>
+
+                                    </div>
+
+                                  </div>
+
+                                </label>
+
+
+
+                                {/* FILE INFO */}
+                                <div className="flex items-center gap-2 mt-3 px-1">
+
+                                  <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+
+                                  <p className="text-sm text-slate-600 dark:text-zinc-300 truncate">
+
+                                    {paymentProofName}
+
+                                  </p>
+
+                                </div>
 
                               </div>
 
+                            )}
 
+                            {/* INPUT TUNGGAL - tetap sama walau tampilan berganti,
+                                supaya file yang sudah dipilih tidak hilang */}
+                            <input
+                              id="paymentProof"
+                              type="file"
+                              name="paymentProof"
+                              required
+                              accept="image/jpeg,image/png"
+                              onChange={handlePaymentProofChange}
+                              className="hidden"
+                            />
 
-                              {/* INPUT REPLACE */}
-                              <input
-                                id="paymentProof"
-                                type="file"
-                                name="paymentProof"
-                                required
-                                accept="image/jpeg,image/png"
-                                onChange={handlePaymentProofChange}
-                                className="hidden"
-                              />
-
-                            </div>
-
-                          )}
+                          </div>
 
 
                           <p className="text-xs text-slate-500 dark:text-zinc-500 ml-1 leading-relaxed">
