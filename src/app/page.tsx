@@ -23,19 +23,27 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showCommunityInput, setShowCommunityInput] = useState(false);
+  const [ticketType, setTicketType] = useState('');
 
-  // PAYMENT
   const [copied, setCopied] = useState(false);
   const [paymentProofName, setPaymentProofName] = useState('');
   const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
 
-  // =========================================
-  // GANTI INFORMASI PEMBAYARAN DI SINI
-  // =========================================
+  const [studentCardName, setStudentCardName] = useState('');
+  const [studentCardPreview, setStudentCardPreview] = useState<string | null>(null);
+
   const BANK_NAME = 'BCA';
-  const ACCOUNT_NUMBER = '1234567890';
-  const ACCOUNT_NAME = 'Folago Academy';
-  const TICKET_PRICE = 'Rp100.000';
+  const ACCOUNT_NUMBER = '3801204145';
+  const ACCOUNT_NAME = 'Siti Rahmah';
+
+  const TICKET_PRICE =
+    ticketType === 'Umum'
+      ? 'Rp90.000'
+      : ticketType === 'Group 5 Orang'
+      ? 'Rp350.000'
+      : ticketType === 'Siswa SMA/SMK & Mahasiswa'
+      ? 'Rp50.000'
+      : '-';
 
   const handleCopyAccount = async () => {
     try {
@@ -131,6 +139,70 @@ export default function Home() {
     }
   };
 
+  const handleStudentCardChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('Kartu pelajar/mahasiswa harus berupa JPG, JPEG, atau PNG.');
+
+      e.target.value = '';
+      setStudentCardName('');
+      setStudentCardPreview(null);
+
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      alert('Ukuran kartu pelajar/mahasiswa maksimal 5 MB.');
+
+      e.target.value = '';
+      setStudentCardName('');
+      setStudentCardPreview(null);
+
+      return;
+    }
+
+    if (studentCardPreview) {
+      URL.revokeObjectURL(studentCardPreview);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setStudentCardName(file.name);
+    setStudentCardPreview(previewUrl);
+  };
+
+  const handleRemoveStudentCard = () => {
+    if (studentCardPreview) {
+      URL.revokeObjectURL(studentCardPreview);
+    }
+
+    setStudentCardName('');
+    setStudentCardPreview(null);
+
+    const input = document.getElementById(
+      'studentCard'
+    ) as HTMLInputElement | null;
+
+    if (input) {
+      input.value = '';
+    }
+  };
+
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -150,6 +222,18 @@ export default function Home() {
         paymentProofBase64 = await fileToBase64(paymentProof);
       }
 
+      const studentCard = formData.get('studentCard') as File | null;
+
+      let studentCardBase64 = '';
+
+      if (
+        studentCard &&
+        studentCard instanceof File &&
+        studentCard.size > 0
+      ) {
+        studentCardBase64 = await fileToBase64(studentCard);
+      }
+
       const participantsData = [
         {
           fullName: formData.get('fullName'),
@@ -162,7 +246,16 @@ export default function Home() {
           email: formData.get('email'),
           whatsapp: formData.get('whatsapp'),
 
-          // PAYMENT DATA
+          ticketType: formData.get('ticketType'),
+          groupMember1: formData.get('groupMember1') || '-',
+          groupMember2: formData.get('groupMember2') || '-',
+          groupMember3: formData.get('groupMember3') || '-',
+          groupMember4: formData.get('groupMember4') || '-',
+          groupMember5: formData.get('groupMember5') || '-',
+          schoolUniversity: formData.get('schoolUniversity') || '-',
+          studentCard: studentCardBase64,
+          studentCardName: studentCard?.name || '',
+
           paymentBank: BANK_NAME,
           paymentAccount: ACCOUNT_NUMBER,
           paymentAccountName: ACCOUNT_NAME,
@@ -187,8 +280,6 @@ export default function Home() {
       const result = await response.json();
 
       if (result.status === 'success') {
-
-        // SEND EMAIL
         if (result.tickets && result.tickets.length > 0) {
           const ticket = result.tickets[0];
 
@@ -230,11 +321,6 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
 
-
-          {/* ========================================= */}
-          {/* LEFT SECTION */}
-          {/* ========================================= */}
-
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -245,7 +331,6 @@ export default function Home() {
             className="lg:col-span-5 flex flex-col justify-center pt-2 sm:pt-0"
           >
 
-            {/* SPONSORS */}
             <div className="relative w-full overflow-hidden bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 backdrop-blur-xl py-5 sm:py-6 rounded-[3rem] shadow-[0_8px_40px_rgba(34,197,94,0.15)] mb-10 group">
 
               <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/50 dark:via-white/5 to-white/0 group-hover:via-white/80 dark:group-hover:via-white/10 transition-colors duration-700"></div>
@@ -277,8 +362,6 @@ export default function Home() {
                       src: '/logo/folago-neww.png',
                       alt: 'Folago'
                     },
-
-                    // Duplicate
                     {
                       src: '/logo/tactlink.png',
                       alt: 'Tactlink'
@@ -291,7 +374,6 @@ export default function Home() {
                       src: '/logo/folago-neww.png',
                       alt: 'Folago'
                     },
-
                     {
                       src: '/logo/tactlink.png',
                       alt: 'Tactlink'
@@ -335,8 +417,6 @@ export default function Home() {
 
             </div>
 
-
-            {/* EVENT TAG */}
             <div className="inline-flex">
 
               <span className="bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 font-bold px-4 py-1.5 rounded-full text-xs sm:text-sm tracking-[0.2em] uppercase mb-6 shadow-[0_0_15px_rgba(34,197,94,0.4)]">
@@ -350,8 +430,6 @@ export default function Home() {
 
             </div>
 
-
-            {/* TITLE */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading leading-tight mb-8 font-bold text-slate-900 dark:text-white">
 
               Dari Konten <br />
@@ -373,12 +451,8 @@ export default function Home() {
 
             </h1>
 
-
-            {/* EVENT INFORMATION */}
             <div className="bg-white/80 dark:bg-[#0C0C14]/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 shadow-xl rounded-3xl p-6 md:p-8 space-y-6 mb-10">
 
-
-              {/* DATE */}
               <div className="flex items-start gap-4 group">
 
                 <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl group-hover:bg-green-500/10 transition-colors border border-slate-100 dark:border-white/10 shadow-sm">
@@ -390,9 +464,7 @@ export default function Home() {
                 <div>
 
                   <h3 className="font-semibold text-lg text-slate-900 dark:text-white">
-
                     Tanggal & Waktu
-
                   </h3>
 
                   <p className="text-slate-500 dark:text-zinc-400 mt-1">
@@ -406,8 +478,6 @@ export default function Home() {
 
               </div>
 
-
-              {/* LOCATION */}
               <div className="flex items-start gap-4 group">
 
                 <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl group-hover:bg-blue-500/10 transition-colors border border-slate-100 dark:border-white/10 shadow-sm">
@@ -419,22 +489,19 @@ export default function Home() {
                 <div>
 
                   <h3 className="font-semibold text-lg text-slate-900 dark:text-white">
-
                     Tempat
-
                   </h3>
 
                   <p className="text-slate-500 dark:text-zinc-400 mt-1 text-sm leading-relaxed">
 
-                    
+                    <strong>
+                      Aula Lantai 3 Poltekkes Tanjung Pinang
+                    </strong>
 
-                      <strong>
+                    <br />
 
-                        Kepulauan Riau (Vanue Menyusul) <br />
-
-                      </strong>
-
-                 
+                    Jl. Arif Rahman Hakim No.01, Sei Jang,
+                    Kec. Bukit Bestari, Kota Tanjung Pinang
 
                   </p>
 
@@ -445,12 +512,6 @@ export default function Home() {
             </div>
 
           </motion.div>
-
-
-
-          {/* ========================================= */}
-          {/* RIGHT SECTION */}
-          {/* ========================================= */}
 
           <motion.div
             initial={{
@@ -532,7 +593,6 @@ export default function Home() {
 
                     </p>
 
-
                     {status === "error" && (
 
                       <motion.div
@@ -556,7 +616,6 @@ export default function Home() {
 
                     )}
 
-
                     <form
                       onSubmit={handleSubmit}
                       className="space-y-5"
@@ -564,8 +623,6 @@ export default function Home() {
 
                       <div className="space-y-5">
 
-
-                        {/* FULL NAME */}
                         <div className="space-y-2.5">
 
                           <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
@@ -588,9 +645,6 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* TIKTOK GUIDE */}
                         <div className="mb-2 mt-4">
 
                           <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 mb-2.5 block">
@@ -607,11 +661,7 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* USERNAME & FOLLOWERS */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-
 
                           <div className="space-y-2.5">
 
@@ -634,8 +684,6 @@ export default function Home() {
                             />
 
                           </div>
-
-
 
                           <div className="space-y-2.5">
 
@@ -661,9 +709,6 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* TIKTOK LINK */}
                         <div className="space-y-2.5">
 
                           <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
@@ -686,9 +731,6 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* CATEGORY */}
                         <div className="space-y-2.5">
 
                           <div>
@@ -746,9 +788,6 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* COMMUNITY */}
                         <div className="space-y-2.5">
 
                           <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
@@ -783,9 +822,6 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* COMMUNITY NAME */}
                         {showCommunityInput && (
 
                           <div className="space-y-2.5">
@@ -812,16 +848,9 @@ export default function Home() {
 
                         )}
 
-
-
-                        {/* EMAIL / WHATSAPP SEPARATOR */}
                         <div className="pt-4 mt-4 border-t border-slate-200 dark:border-white/10"></div>
 
-
-
-                        {/* EMAIL & WHATSAPP */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
 
                           <div className="space-y-2.5">
 
@@ -844,8 +873,6 @@ export default function Home() {
                             />
 
                           </div>
-
-
 
                           <div className="space-y-2.5">
 
@@ -871,11 +898,342 @@ export default function Home() {
 
                         </div>
 
+                        <div className="pt-7 mt-7 border-t border-slate-200 dark:border-white/10">
 
+                          <div className="space-y-2.5">
 
-                        {/* ========================================= */}
-                        {/* PAYMENT SECTION */}
-                        {/* ========================================= */}
+                            <div>
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Pilihan Tiket Keikutsertaan
+
+                                <span className="text-red-500">
+                                  *
+                                </span>
+
+                              </label>
+
+                              <p className="text-xs text-slate-500 ml-1 mt-1">
+
+                                Silakan pilih kategori tiket yang sesuai.
+
+                              </p>
+
+                            </div>
+
+                            <CustomSelect
+                              name="ticketType"
+                              required={true}
+                              placeholder="-- Pilih Tiket --"
+                              onChange={(val) =>
+                                setTicketType(val)
+                              }
+                              options={[
+                                {
+                                  value: 'Umum',
+                                  label: 'Umum — Rp90.000'
+                                },
+                                {
+                                  value: 'Group 5 Orang',
+                                  label: 'Group 5 Orang — Rp350.000'
+                                },
+                                {
+                                  value: 'Siswa SMA/SMK & Mahasiswa',
+                                  label: 'Siswa SMA/SMK & Mahasiswa — Rp50.000'
+                                }
+                              ]}
+                            />
+
+                          </div>
+
+                        </div>
+
+                        {ticketType === 'Group 5 Orang' && (
+
+                          <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-5 sm:p-6 space-y-5">
+
+                            <div>
+
+                              <h3 className="font-bold text-slate-900 dark:text-white">
+
+                                Nama Anggota Group
+
+                              </h3>
+
+                              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+
+                                Masukkan nama lengkap 5 anggota group di bawah ini.
+
+                              </p>
+
+                            </div>
+
+                            <div className="space-y-2.5">
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Nama Anggota 1
+
+                                <span className="text-red-500">*</span>
+
+                              </label>
+
+                              <input
+                                type="text"
+                                name="groupMember1"
+                                required
+                                className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50"
+                                placeholder="Masukkan nama anggota 1"
+                              />
+
+                            </div>
+
+                            <div className="space-y-2.5">
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Nama Anggota 2
+
+                                <span className="text-red-500">*</span>
+
+                              </label>
+
+                              <input
+                                type="text"
+                                name="groupMember2"
+                                required
+                                className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50"
+                                placeholder="Masukkan nama anggota 2"
+                              />
+
+                            </div>
+
+                            <div className="space-y-2.5">
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Nama Anggota 3
+
+                                <span className="text-red-500">*</span>
+
+                              </label>
+
+                              <input
+                                type="text"
+                                name="groupMember3"
+                                required
+                                className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50"
+                                placeholder="Masukkan nama anggota 3"
+                              />
+
+                            </div>
+
+                            <div className="space-y-2.5">
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Nama Anggota 4
+
+                                <span className="text-red-500">*</span>
+
+                              </label>
+
+                              <input
+                                type="text"
+                                name="groupMember4"
+                                required
+                                className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50"
+                                placeholder="Masukkan nama anggota 4"
+                              />
+
+                            </div>
+
+                            <div className="space-y-2.5">
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Nama Anggota 5
+
+                                <span className="text-red-500">*</span>
+
+                              </label>
+
+                              <input
+                                type="text"
+                                name="groupMember5"
+                                required
+                                className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50"
+                                placeholder="Masukkan nama anggota 5"
+                              />
+
+                            </div>
+
+                          </div>
+
+                        )}
+
+                        {ticketType === 'Siswa SMA/SMK & Mahasiswa' && (
+
+                          <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-5 sm:p-6 space-y-5">
+
+                            <div>
+
+                              <h3 className="font-bold text-slate-900 dark:text-white">
+
+                                Data Siswa / Mahasiswa
+
+                              </h3>
+
+                              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+
+                                Lengkapi data berikut untuk menggunakan tiket khusus siswa/mahasiswa.
+
+                              </p>
+
+                            </div>
+
+                            <div className="space-y-2.5">
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Asal Sekolah / Universitas
+
+                                <span className="text-red-500">*</span>
+
+                              </label>
+
+                              <input
+                                type="text"
+                                name="schoolUniversity"
+                                required
+                                className="w-full glass-input px-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-xl bg-white/50 dark:bg-black/50"
+                                placeholder="Masukkan nama sekolah atau universitas"
+                              />
+
+                            </div>
+
+                            <div className="space-y-2.5">
+
+                              <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
+
+                                Upload Kartu Pelajar / Kartu Mahasiswa
+
+                                <span className="text-red-500">*</span>
+
+                              </label>
+
+                              <div className="relative">
+
+                                {!studentCardPreview ? (
+
+                                  <label
+                                    htmlFor="studentCard"
+                                    className="relative flex flex-col items-center justify-center w-full min-h-[150px] border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl cursor-pointer bg-white/50 dark:bg-black/20 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:border-green-400 dark:hover:border-green-500/50 transition-all"
+                                  >
+
+                                    <div className="flex flex-col items-center justify-center px-5 py-6 text-center">
+
+                                      <div className="w-11 h-11 rounded-full bg-green-500/10 flex items-center justify-center mb-3">
+
+                                        <Upload className="w-5 h-5 text-green-600 dark:text-green-400" />
+
+                                      </div>
+
+                                      <p className="text-sm font-semibold text-slate-700 dark:text-zinc-200">
+
+                                        Upload kartu pelajar / mahasiswa
+
+                                      </p>
+
+                                      <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">
+
+                                        JPG atau PNG, maksimal 5 MB
+
+                                      </p>
+
+                                    </div>
+
+                                  </label>
+
+                                ) : (
+
+                                  <div className="relative rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3">
+
+                                    <button
+                                      type="button"
+                                      onClick={handleRemoveStudentCard}
+                                      className="absolute top-5 right-5 z-30 w-9 h-9 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-all hover:scale-105"
+                                      aria-label="Hapus kartu pelajar"
+                                      title="Hapus foto"
+                                    >
+
+                                      <X className="w-5 h-5" />
+
+                                    </button>
+
+                                    <label
+                                      htmlFor="studentCard"
+                                      className="block cursor-pointer group"
+                                    >
+
+                                      <div className="relative overflow-hidden rounded-xl bg-slate-100 dark:bg-black/30 min-h-[200px] flex items-center justify-center">
+
+                                        <img
+                                          src={studentCardPreview}
+                                          alt="Preview Kartu Pelajar / Mahasiswa"
+                                          className="w-full max-h-[400px] object-contain"
+                                        />
+
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-all flex items-center justify-center">
+
+                                          <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg">
+
+                                            <RefreshCw className="w-4 h-4" />
+
+                                            Ganti Foto
+
+                                          </div>
+
+                                        </div>
+
+                                      </div>
+
+                                    </label>
+
+                                    <div className="flex items-center gap-2 mt-3 px-1">
+
+                                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+
+                                      <p className="text-sm text-slate-600 dark:text-zinc-300 truncate">
+
+                                        {studentCardName}
+
+                                      </p>
+
+                                    </div>
+
+                                  </div>
+
+                                )}
+
+                                <input
+                                  id="studentCard"
+                                  type="file"
+                                  name="studentCard"
+                                  required
+                                  accept="image/jpeg,image/png"
+                                  onChange={handleStudentCardChange}
+                                  className="hidden"
+                                />
+
+                              </div>
+
+                            </div>
+
+                          </div>
+
+                        )}
 
                         <div className="pt-7 mt-7 border-t border-slate-200 dark:border-white/10">
 
@@ -907,13 +1265,8 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* PAYMENT CARD */}
                         <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/5 p-5 sm:p-6 space-y-5">
 
-
-                          {/* BANK & AMOUNT */}
                           <div className="flex items-start justify-between gap-4">
 
                             <div>
@@ -932,7 +1285,6 @@ export default function Home() {
 
                             </div>
 
-
                             <div className="text-right">
 
                               <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 dark:text-zinc-500 mb-1">
@@ -947,17 +1299,22 @@ export default function Home() {
 
                               </p>
 
+                              {ticketType === 'Group 5 Orang' && (
+
+                                <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">
+
+                                  Rp70.000 / orang
+
+                                </p>
+
+                              )}
+
                             </div>
 
                           </div>
 
-
-
                           <div className="border-t border-slate-200 dark:border-white/10"></div>
 
-
-
-                          {/* ACCOUNT NUMBER */}
                           <div>
 
                             <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 dark:text-zinc-500 mb-2">
@@ -967,7 +1324,6 @@ export default function Home() {
                             </p>
 
                             <div className="flex items-center gap-3">
-
 
                               <div className="flex-1 bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3">
 
@@ -979,9 +1335,6 @@ export default function Home() {
 
                               </div>
 
-
-
-                              {/* COPY BUTTON */}
                               <button
                                 type="button"
                                 onClick={handleCopyAccount}
@@ -1020,9 +1373,6 @@ export default function Home() {
 
                           </div>
 
-
-
-                          {/* ACCOUNT NAME */}
                           <div>
 
                             <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 dark:text-zinc-500 mb-1">
@@ -1041,12 +1391,6 @@ export default function Home() {
 
                         </div>
 
-
-
-                        {/* ========================================= */}
-                        {/* PAYMENT PROOF */}
-                        {/* ========================================= */}
-
                         <div className="space-y-2.5">
 
                           <label className="text-sm font-medium text-slate-700 dark:text-zinc-300 ml-1 block">
@@ -1059,12 +1403,10 @@ export default function Home() {
 
                           </label>
 
-
                           <div className="relative">
 
                             {!paymentProofPreview ? (
 
-                              /* BELUM UPLOAD */
                               <label
                                 htmlFor="paymentProof"
                                 className="relative flex flex-col items-center justify-center w-full min-h-[170px] border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:border-green-400 dark:hover:border-green-500/50 transition-all"
@@ -1096,11 +1438,8 @@ export default function Home() {
 
                             ) : (
 
-                              /* SUDAH UPLOAD */
                               <div className="relative rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3">
 
-
-                                {/* DELETE BUTTON */}
                                 <button
                                   type="button"
                                   onClick={handleRemovePaymentProof}
@@ -1113,9 +1452,6 @@ export default function Home() {
 
                                 </button>
 
-
-
-                                {/* CLICK PREVIEW TO REPLACE */}
                                 <label
                                   htmlFor="paymentProof"
                                   className="block cursor-pointer group"
@@ -1129,8 +1465,6 @@ export default function Home() {
                                       className="w-full max-h-[450px] object-contain"
                                     />
 
-
-                                    {/* HOVER OVERLAY */}
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-all flex items-center justify-center">
 
                                       <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg">
@@ -1147,9 +1481,6 @@ export default function Home() {
 
                                 </label>
 
-
-
-                                {/* FILE INFO */}
                                 <div className="flex items-center gap-2 mt-3 px-1">
 
                                   <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
@@ -1166,8 +1497,6 @@ export default function Home() {
 
                             )}
 
-                            {/* INPUT TUNGGAL - tetap sama walau tampilan berganti,
-                                supaya file yang sudah dipilih tidak hilang */}
                             <input
                               id="paymentProof"
                               type="file"
@@ -1180,7 +1509,6 @@ export default function Home() {
 
                           </div>
 
-
                           <p className="text-xs text-slate-500 dark:text-zinc-500 ml-1 leading-relaxed">
 
                             Pastikan bukti pembayaran terlihat jelas dan sudah benar
@@ -1192,12 +1520,6 @@ export default function Home() {
 
                       </div>
 
-
-
-                      {/* ========================================= */}
-                      {/* SUBMIT BUTTON */}
-                      {/* ========================================= */}
-
                       <button
                         type="submit"
                         disabled={isSubmitting}
@@ -1205,7 +1527,6 @@ export default function Home() {
                       >
 
                         <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
-
 
                         {isSubmitting ? (
 
@@ -1239,9 +1560,6 @@ export default function Home() {
 
       </div>
 
-
-
-      {/* TACTLINK SUPPORT */}
       <div className="w-full mt-20 relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
 
         <TactlinkSupportSection noBackground={true} />
