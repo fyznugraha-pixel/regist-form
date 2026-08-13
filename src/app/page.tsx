@@ -208,12 +208,79 @@ export default function Home() {
   ) => {
     e.preventDefault();
 
+    const formData = new FormData(e.currentTarget);
+
+    const fullName = formData.get('fullName');
+    const tiktokUsername = formData.get('tiktokUsername');
+    const tiktokLink = formData.get('tiktokLink');
+    const followers = formData.get('followers');
+    const kategori = formData.get('kategori');
+    const isCommunity = formData.get('isCommunity');
+    const email = formData.get('email');
+    const whatsapp = formData.get('whatsapp');
+    const selectedTicket = formData.get('ticketType');
+
+    if (
+      !fullName ||
+      !tiktokUsername ||
+      !tiktokLink ||
+      !followers ||
+      !kategori ||
+      !isCommunity ||
+      !email ||
+      !whatsapp ||
+      !selectedTicket
+    ) {
+      alert('Mohon lengkapi semua data yang wajib diisi.');
+      return;
+    }
+
+    if (
+      isCommunity === 'Ya' &&
+      !formData.get('communityName')
+    ) {
+      alert('Mohon isi nama komunitas, institusi, atau organisasi.');
+      return;
+    }
+
+    if (selectedTicket === 'Group 5 Orang') {
+      if (
+        !formData.get('groupMember1') ||
+        !formData.get('groupMember2') ||
+        !formData.get('groupMember3') ||
+        !formData.get('groupMember4') ||
+        !formData.get('groupMember5')
+      ) {
+        alert('Mohon lengkapi nama 5 anggota group.');
+        return;
+      }
+    }
+
+    if (selectedTicket === 'Siswa SMA/SMK & Mahasiswa') {
+      if (!formData.get('schoolUniversity')) {
+        alert('Mohon isi asal sekolah atau universitas.');
+        return;
+      }
+
+      const studentCardFile = formData.get('studentCard') as File;
+
+      if (!studentCardFile || studentCardFile.size === 0) {
+        alert('Mohon upload kartu pelajar atau kartu mahasiswa.');
+        return;
+      }
+    }
+
+    const paymentProofFile = formData.get('paymentProof') as File;
+
+    if (!paymentProofFile || paymentProofFile.size === 0) {
+      alert('Mohon upload bukti pembayaran.');
+      return;
+    }
+
     setIsSubmitting(true);
     setStatus('idle');
 
     try {
-      const formData = new FormData(e.currentTarget);
-
       const paymentProof = formData.get('paymentProof') as File;
 
       let paymentProofBase64 = '';
@@ -451,6 +518,16 @@ export default function Home() {
 
             </h1>
 
+            <div className="mb-6">
+
+              <img
+                src="/KEPULAUAN-RIAU.png"
+                alt="Poster Event Kepulauan Riau"
+                className="w-full rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl object-cover"
+              />
+
+            </div>
+
             <div className="bg-white/80 dark:bg-[#0C0C14]/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 shadow-xl rounded-3xl p-6 md:p-8 space-y-6 mb-10">
 
               <div className="flex items-start gap-4 group">
@@ -618,6 +695,7 @@ export default function Home() {
 
                     <form
                       onSubmit={handleSubmit}
+                      noValidate
                       className="space-y-5"
                     >
 
