@@ -35,6 +35,14 @@ function handleRegistration(data) {
       "Kalau iya, sebutkan",
       "Email",
       "No Whatsapp",
+      "Pilihan Tiket",
+      "Nama Anggota 1",
+      "Nama Anggota 2",
+      "Nama Anggota 3",
+      "Nama Anggota 4",
+      "Nama Anggota 5",
+      "Asal Sekolah/Universitas",
+      "Link Kartu Pelajar/Mahasiswa",
       "Bank",
       "No Rekening Tujuan",
       "Nominal",
@@ -71,10 +79,9 @@ function handleRegistration(data) {
     }
   }
 
-  // Folder tujuan upload bukti bayar = folder yang sama dengan spreadsheet
-  var ssFile = DriveApp.getFileById(spreadsheet.getId());
-  var parents = ssFile.getParents();
-  var proofFolder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+  // Folder khusus untuk masing-masing jenis bukti foto
+  var proofFolder = getOrCreateFolder("Bukti Pembayaran - Folago Academy");
+  var studentCardFolder = getOrCreateFolder("Kartu Pelajar - Folago Academy");
 
   var tickets = [];
   var participantsList = (data.participants && Array.isArray(data.participants))
@@ -86,7 +93,8 @@ function handleRegistration(data) {
     var randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
     var ticketId = "FA-WJ" + randomStr;
 
-    var proofLink = savePaymentProof(proofFolder, p, ticketId);
+    var proofLink = saveImageFile(proofFolder, p.paymentProof, p.paymentProofName, ticketId, p.fullName);
+    var studentCardLink = saveImageFile(studentCardFolder, p.studentCard, p.studentCardName, ticketId, p.fullName);
 
     sheet.appendRow([
       ticketId,
@@ -99,6 +107,14 @@ function handleRegistration(data) {
       p.communityName,
       p.email,
       p.whatsapp,
+      p.ticketType || '',
+      p.groupMember1 || '-',
+      p.groupMember2 || '-',
+      p.groupMember3 || '-',
+      p.groupMember4 || '-',
+      p.groupMember5 || '-',
+      p.schoolUniversity || '-',
+      studentCardLink || '-',
       p.paymentBank || '',
       p.paymentAccount || '',
       p.paymentAmount || '',
@@ -118,7 +134,7 @@ function handleRegistration(data) {
   // Format Border untuk data terbaru yang masuk
   var lastRow = sheet.getLastRow();
   if (lastRow > 1) {
-    var dataRange = sheet.getRange(2, 1, lastRow - 1, 15);
+    var dataRange = sheet.getRange(2, 1, lastRow - 1, 23);
     dataRange.setBorder(true, true, true, true, true, true, "#cccccc", SpreadsheetApp.BorderStyle.SOLID);
   }
 
@@ -133,11 +149,19 @@ function handleRegistration(data) {
   sheet.setColumnWidth(8, 200);  // Nama Komunitas
   sheet.setColumnWidth(9, 200);  // Email
   sheet.setColumnWidth(10, 150); // WA
-  sheet.setColumnWidth(11, 100); // Bank
-  sheet.setColumnWidth(12, 150); // No Rekening Tujuan
-  sheet.setColumnWidth(13, 120); // Nominal
-  sheet.setColumnWidth(14, 250); // Link Bukti Bayar
-  sheet.setColumnWidth(15, 160); // Timestamp
+  sheet.setColumnWidth(11, 180); // Pilihan Tiket
+  sheet.setColumnWidth(12, 160); // Nama Anggota 1
+  sheet.setColumnWidth(13, 160); // Nama Anggota 2
+  sheet.setColumnWidth(14, 160); // Nama Anggota 3
+  sheet.setColumnWidth(15, 160); // Nama Anggota 4
+  sheet.setColumnWidth(16, 160); // Nama Anggota 5
+  sheet.setColumnWidth(17, 200); // Asal Sekolah/Universitas
+  sheet.setColumnWidth(18, 250); // Link Kartu Pelajar/Mahasiswa
+  sheet.setColumnWidth(19, 100); // Bank
+  sheet.setColumnWidth(20, 150); // No Rekening Tujuan
+  sheet.setColumnWidth(21, 120); // Nominal
+  sheet.setColumnWidth(22, 250); // Link Bukti Bayar
+  sheet.setColumnWidth(23, 160); // Timestamp
 
   return ContentService.createTextOutput(JSON.stringify({
     "status": "success",
@@ -146,14 +170,25 @@ function handleRegistration(data) {
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
-// Decode bukti bayar (data URL base64) lalu simpan sebagai file di Drive.
-// Mengembalikan URL file, atau string kosong kalau tidak ada bukti bayar.
-function savePaymentProof(folder, p, ticketId) {
-  if (!p.paymentProof) {
+// Cari folder Drive berdasarkan nama, buat baru kalau belum ada.
+function getOrCreateFolder(folderName) {
+  var folders = DriveApp.getFoldersByName(folderName);
+
+  if (folders.hasNext()) {
+    return folders.next();
+  }
+
+  return DriveApp.createFolder(folderName);
+}
+
+// Decode gambar (data URL base64) lalu simpan sebagai file di Drive.
+// Mengembalikan URL file, atau string kosong kalau tidak ada gambar.
+function saveImageFile(folder, base64DataUrl, originalFileName, ticketId, fullName) {
+  if (!base64DataUrl) {
     return '';
   }
 
-  var matches = String(p.paymentProof).match(/^data:(.*?);base64,(.*)$/);
+  var matches = String(base64DataUrl).match(/^data:(.*?);base64,(.*)$/);
   if (!matches) {
     return '';
   }
@@ -162,8 +197,8 @@ function savePaymentProof(folder, p, ticketId) {
   var base64Data = matches[2];
   var decoded = Utilities.base64Decode(base64Data);
 
-  var extension = getFileExtension(mimeType, p.paymentProofName);
-  var safeName = (p.fullName || 'peserta').toString().trim();
+  var extension = getFileExtension(mimeType, originalFileName);
+  var safeName = (fullName || 'peserta').toString().trim();
   var fileName = ticketId + "_" + safeName + extension;
 
   var blob = Utilities.newBlob(decoded, mimeType, fileName);
