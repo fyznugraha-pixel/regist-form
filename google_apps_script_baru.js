@@ -5,7 +5,8 @@ function doPost(e) {
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({
       "status": "error",
-      "message": error.toString()
+      "message": error.toString(),
+      "stack": error.stack || ''
     })).setMimeType(ContentService.MimeType.JSON);
   }
 }
@@ -203,7 +204,13 @@ function saveImageFile(folder, base64DataUrl, originalFileName, ticketId, fullNa
 
   var blob = Utilities.newBlob(decoded, mimeType, fileName);
   var file = folder.createFile(blob);
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (sharingError) {
+    // Kebijakan akun/organisasi mungkin membatasi "anyone with link".
+    // File tetap tersimpan dan bisa diakses oleh pemilik script, jadi jangan gagalkan pendaftaran.
+  }
 
   return file.getUrl();
 }

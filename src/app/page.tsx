@@ -369,6 +369,7 @@ export default function Home() {
 
         setStatus('success');
       } else {
+        console.error('Registration failed, server response:', result);
         setStatus('error');
       }
 
